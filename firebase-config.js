@@ -9,4 +9,4 @@ export const firebaseConfig = {
   measurementId: "G-LZD8S5VCZV"
 };
 
-export const GM_UID = "dE74k67WUZT2q8hQeDYBg1TxImY2";
+export const GM_UID = "opz5zCLXhMc0TROLZt1eDL5kcPq1";
