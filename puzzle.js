@@ -413,7 +413,7 @@ if (!isGMPage) {
     const errorBox = el("auth-error");
 
     gmAuthorized =
-      !!user && user.uid === GM_UID;
+  !!user && user.uid === "opz5zCLXhMc0TROLZt1eDL5kcPq1";
 
     if (gmAuthorized) {
       loginCard?.classList.add("hidden");
