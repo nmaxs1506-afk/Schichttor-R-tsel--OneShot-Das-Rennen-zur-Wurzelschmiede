@@ -1,14 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
-  getDatabase, ref, onValue, set, update, get, onDisconnect
+  getDatabase, ref, onValue, set, update, get
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-import { firebaseConfig } from "./firebase-config.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { firebaseConfig, GM_UID } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 const rootRef = ref(db, "schichttor");
 const mode = document.body.dataset.mode || "player";
 const isGM = mode === "gm";
+let gmAuthorized = false;
 
 const ringIds = ["ring-outer", "ring-middle", "ring-inner"];
 let currentState = null;
@@ -46,7 +51,7 @@ function normalizeState(s){
 
 async function ensureState(){
   const snap = await get(rootRef);
-  if(!snap.exists()){
+  if(!snap.exists() && gmAuthorized){
     await set(rootRef, blankState());
   }
 }
@@ -68,135 +73,90 @@ function render(state){
   currentState = normalizeState(state);
   remoteApplying = true;
 
+  function attachPuzzleControls(){
   for(let i=0;i<3;i++){
-    const slider = document.getElementById(`slider-${i}`);
-    const lock = document.getElementById(`lock-${i}`);
-    const status = document.getElementById(`status-${i}`);
-
-    slider.value = String(currentState.rotations[i] ?? 0);
-    applyRotation(i, slider.value);
-
-    const isLocked = !!currentState.locked[i];
-    slider.disabled = isLocked;
-    lock.textContent = isLocked ? "🔒" : "🔓";
-    lock.disabled = isLocked || (i>0 && !currentState.locked[i-1]);
-    status.textContent = isLocked ? "Ausgerichtet" : "";
+    const slider=document.getElementById(`slider-${i}`);
+    const lock=document.getElementById(`lock-${i}`);
+    if(!slider || !lock) continue;
+    slider.addEventListener("input", e => {
+      if(remoteApplying) return;
+      applyRotation(i, e.target.value);
+      changeRotation(i, e.target.value);
+    });
+    lock.addEventListener("click", ()=>tryLock(i));
   }
 
-  setMarker("target", currentState.markers.target);
-  setMarker(0, currentState.markers.outer);
-  setMarker(1, currentState.markers.middle);
-  setMarker(2, currentState.markers.inner);
-
-  const solved = currentState.solved;
-  document.getElementById("solved-msg").style.display = solved ? "block" : "none";
-  for(const id of ringIds){
-    document.getElementById(id).style.transition = "opacity 1.2s";
-    document.getElementById(id).style.opacity = solved ? "0.15" : "1";
-  }
-  const glow = document.getElementById("center-glow");
-  glow.style.opacity = solved ? "1" : "0";
-  glow.classList.toggle("on", solved);
-
-  if(isGM){
-    document.getElementById("toggle-target").checked = currentState.markers.target;
-    document.getElementById("toggle-0").checked = currentState.markers.outer;
-    document.getElementById("toggle-1").checked = currentState.markers.middle;
-    document.getElementById("toggle-2").checked = currentState.markers.inner;
-  }
-
-  remoteApplying = false;
-}
-
-function setMarker(key, show){
-  const el = key === "target"
-    ? document.getElementById("target-marker")
-    : document.getElementById(`notch-${key}`);
-  if(el) el.style.opacity = show ? "1" : "0";
-}
-
-async function changeRotation(i, value){
-  if(!currentState || currentState.locked[i]) return;
-  await set(ref(db, `schichttor/rotations/${i}`), Number(value));
-}
-
-async function tryLock(i){
-  if(!currentState) return;
-  if(i>0 && !currentState.locked[i-1]) return;
-
-  if(aligned(i)){
-    const patch = {};
-    patch[`locked/${i}`] = true;
-    if(i === 2) patch["solved"] = true;
-    await update(rootRef, patch);
-  } else {
-    const row = document.getElementById(`row-${i}`);
-    row.classList.remove("shake");
-    void row.offsetWidth;
-    row.classList.add("shake");
-    document.getElementById(`status-${i}`).textContent = "Noch nicht ausgerichtet";
-    setTimeout(()=>{
-      if(currentState && !currentState.locked[i]){
-        document.getElementById(`status-${i}`).textContent = "";
-      }
-    }, 1600);
-  }
-}
-
-for(let i=0;i<3;i++){
-  const slider = document.getElementById(`slider-${i}`);
-  slider.addEventListener("input", e => {
-    if(remoteApplying) return;
-    applyRotation(i, e.target.value); // sofort lokal
-    changeRotation(i, e.target.value); // dann synchronisieren
+  onValue(rootRef, snap=>{ if(snap.exists()) render(snap.val()); });
+  const connectedRef=ref(db, ".info/connected");
+  onValue(connectedRef, snap=>{
+    const connected=snap.val()===true;
+    const dot=document.getElementById("connection-dot");
+    const txt=document.getElementById("connection-text");
+    if(dot) dot.classList.toggle("on", connected);
+    if(txt) txt.textContent=connected?"Live verbunden":"Keine Verbindung";
   });
-  document.getElementById(`lock-${i}`).addEventListener("click", ()=>tryLock(i));
 }
 
-if(isGM){
-  const markerMap = {
-    "toggle-target": "target",
-    "toggle-0": "outer",
-    "toggle-1": "middle",
-    "toggle-2": "inner"
-  };
+function attachGMControls(){
+  const markerMap={"toggle-target":"target","toggle-0":"outer","toggle-1":"middle","toggle-2":"inner"};
   for(const [id,key] of Object.entries(markerMap)){
-    document.getElementById(id).addEventListener("change", async e=>{
-      await set(ref(db, `schichttor/markers/${key}`), !!e.target.checked);
+    document.getElementById(id)?.addEventListener("change", async e=>{
+      try { await set(ref(db, `schichttor/markers/${key}`), !!e.target.checked); }
+      catch(err){ console.error(err); alert("Firebase hat diese GM-Aktion abgelehnt."); }
     });
   }
-
-  document.getElementById("new-puzzle").addEventListener("click", async ()=>{
-    await set(rootRef, blankState());
+  document.getElementById("new-puzzle")?.addEventListener("click", async ()=>{
+    try { await set(rootRef, blankState()); }
+    catch(err){ console.error(err); alert("Firebase hat das Neu-Mischen abgelehnt."); }
   });
-
-  document.getElementById("reset-positions").addEventListener("click", async ()=>{
-    await update(rootRef, {
-      rotations:[0,0,0],
-      locked:[false,false,false],
-      solved:false
-    });
+  document.getElementById("reset-positions")?.addEventListener("click", async ()=>{
+    try { await update(rootRef,{rotations:[0,0,0],locked:[false,false,false],solved:false}); }
+    catch(err){ console.error(err); alert("Firebase hat das Zurücksetzen abgelehnt."); }
   });
-
-  document.getElementById("hide-markers").addEventListener("click", async ()=>{
-    await set(ref(db, "schichttor/markers"), {
-      target:false, outer:false, middle:false, inner:false
-    });
+  document.getElementById("hide-markers")?.addEventListener("click", async ()=>{
+    try { await set(ref(db,"schichttor/markers"),{target:false,outer:false,middle:false,inner:false}); }
+    catch(err){ console.error(err); alert("Firebase hat diese GM-Aktion abgelehnt."); }
   });
+  document.getElementById("logout")?.addEventListener("click", ()=>signOut(auth));
 }
 
-onValue(rootRef, snap=>{
-  if(snap.exists()) render(snap.val());
-});
+if(!isGM){
+  attachPuzzleControls();
+}else{
+  attachGMControls();
+  const form=document.getElementById("login-form");
+  form?.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const box=document.getElementById("auth-error");
+    box.style.display="none";
+    try {
+      await signInWithEmailAndPassword(auth, document.getElementById("gm-email").value.trim(), document.getElementById("gm-password").value);
+    } catch(err) {
+      console.error(err);
+      box.textContent="Anmeldung fehlgeschlagen. Prüfe E-Mail-Adresse und Passwort.";
+      box.style.display="block";
+    }
+  });
 
-const connectedRef = ref(db, ".info/connected");
-onValue(connectedRef, snap=>{
-  const connected = snap.val() === true;
-  document.getElementById("connection-dot").classList.toggle("on", connected);
-  document.getElementById("connection-text").textContent = connected ? "Live verbunden" : "Keine Verbindung";
-});
-
-ensureState().catch(err=>{
-  console.error(err);
-  document.getElementById("connection-text").textContent = "Firebase-Fehler – Konsole prüfen";
-});
+  onAuthStateChanged(auth, async user=>{
+    const login=document.getElementById("login-card");
+    const content=document.getElementById("gm-content");
+    const box=document.getElementById("auth-error");
+    gmAuthorized=!!user && user.uid===GM_UID;
+    if(gmAuthorized){
+      login.classList.add("hidden");
+      content.classList.remove("hidden");
+      document.getElementById("gm-user").textContent=`Angemeldet als ${user.email}`;
+      attachPuzzleControls();
+      await ensureState();
+    }else{
+      content.classList.add("hidden");
+      login.classList.remove("hidden");
+      if(user){
+        box.textContent="Dieser Firebase-Benutzer ist nicht als GM freigegeben.";
+        box.style.display="block";
+        await signOut(auth);
+      }
+    }
+  });
+}

@@ -9,8 +9,18 @@
 <body data-mode="gm">
 <main class="shell">
   <h1>Das Schichttor</h1>
-  <p class="subtitle">GM-Ansicht – Änderungen werden live an alle offenen Spieleransichten übertragen.</p>
-  <div class="layout gm">
+  <p class="subtitle">GM-Ansicht – geschützt durch Firebase Authentication.</p>
+  <section id="login-card" class="card login-card">
+    <h2>GM-Anmeldung</h2>
+    <form id="login-form" class="auth-form">
+      <label>E-Mail-Adresse<input id="gm-email" type="email" autocomplete="username" required></label>
+      <label>Passwort<input id="gm-password" type="password" autocomplete="current-password" required></label>
+      <button class="auth-btn" type="submit">Anmelden</button>
+      <div id="auth-error" class="auth-error"></div>
+    </form>
+    <p class="auth-note">Melde dich mit dem GM-Benutzer an, den du in Firebase Authentication angelegt hast.</p>
+  </section>
+  <div id="gm-content" class="layout gm hidden">
     <section class="card">
       
 <div class="connection"><span id="connection-dot" class="dot"></span><span id="connection-text">Verbinde …</span></div>
@@ -64,6 +74,7 @@
     </section>
     <aside class="card gm-panel">
       <h2>GM-Steuerung</h2>
+      <div id="gm-user" class="gm-user"></div>
       <label class="marker-toggle"><input type="checkbox" id="toggle-target">Zielmarke</label>
       <label class="marker-toggle"><input type="checkbox" id="toggle-0">Symbol Schicht</label>
       <label class="marker-toggle"><input type="checkbox" id="toggle-1">Symbol Tiefe</label>
@@ -74,6 +85,7 @@
         <button class="gm-btn" id="hide-markers">◌ Alle Markierungen verbergen</button>
       </div>
       <p class="gm-note">Diese Seite enthält die GM-Kontrollen. Gib deinen Spielern nur den Link zur <strong>index.html</strong>.</p>
+          <button class="gm-btn logout" id="logout">Abmelden</button>
     </aside>
   </div>
 </main>

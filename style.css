@@ -90,3 +90,15 @@ svg{display:block;width:100%;height:auto}
   .ring-row label{grid-column:1/-1}
   .status{grid-column:1/-1;text-align:left}
 }
+
+.hidden{display:none!important}
+.login-card{max-width:440px;margin:20px auto}
+.auth-form{display:grid;gap:12px}
+.auth-form label{font-size:13px;color:var(--muted)}
+.auth-form input{width:100%;margin-top:5px;padding:10px 11px;border-radius:9px;border:1px solid #526276;background:#10161e;color:var(--text)}
+.auth-btn{border:1px solid #526276;background:#263241;color:var(--text);border-radius:9px;padding:10px 12px;min-height:38px;cursor:pointer;font-weight:700}
+.auth-btn:hover{background:#304052}
+.auth-error{display:none;color:#ffaaaa;font-size:13px;line-height:1.4}
+.auth-note,.gm-user{font-size:12px;color:var(--muted);line-height:1.5}
+.gm-user{margin-bottom:12px;overflow-wrap:anywhere}
+.logout{width:100%;margin-top:12px;text-align:center}

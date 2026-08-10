@@ -1,23 +1,9 @@
-# Schichttor – Live-Version
+# Schichttor – abgesicherte Version
 
-Enthaltene Dateien:
-- `index.html` – Spieleransicht
-- `gm.html` – GM-Ansicht mit Markierungs- und Reset-Steuerung
-- `style.css` – Darstellung
-- `puzzle.js` – Rätsel- und Firebase-Logik
-- `firebase-config.js` – Firebase-Konfiguration
+GM UID: `dE74k67WUZT2q8hQeDYBg1TxImY2`
 
-## Testen
-
-Die Dateien sollten über einen Webserver geöffnet werden (nicht einfach per Doppelklick als `file://`).
-Am einfachsten lädst du den kompletten Ordner zu GitHub Pages hoch.
-
-Spieler bekommen später:
-`https://DEINNAME.github.io/DEIN-REPOSITORY/`
-
-GM nutzt:
-`https://DEINNAME.github.io/DEIN-REPOSITORY/gm.html`
-
-## Wichtig
-Die aktuelle Firebase Realtime Database läuft für den Test im offenen Testmodus.
-Bevor du sie dauerhaft nutzt, sollten die Regeln abgesichert werden.
+1. Dateien in GitHub ersetzen.
+2. Firebase → Realtime Database → Regeln.
+3. Inhalt von `database-rules.json` einsetzen und veröffentlichen.
+4. `gm.html` öffnen und mit dem in Firebase angelegten E-Mail/Passwort-Benutzer anmelden.
+5. Spieler öffnen weiterhin nur `index.html` und brauchen kein Konto.

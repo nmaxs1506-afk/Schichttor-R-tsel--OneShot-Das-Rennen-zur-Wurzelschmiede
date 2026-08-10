@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "schichttor": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === 'dE74k67WUZT2q8hQeDYBg1TxImY2'",
+      "rotations": {
+        "$ring": {
+          ".write": "$ring === '0' || $ring === '1' || $ring === '2'",
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 359"
+        }
+      },
+      "locked": {
+        "$ring": {
+          ".write": "$ring === '0' || $ring === '1' || $ring === '2'",
+          ".validate": "(auth != null && auth.uid === 'dE74k67WUZT2q8hQeDYBg1TxImY2') || (newData.val() === true && data.val() !== true)"
+        }
+      },
+      "solved": {
+        ".write": true,
+        ".validate": "(auth != null && auth.uid === 'dE74k67WUZT2q8hQeDYBg1TxImY2') || (newData.val() === true && root.child('schichttor/locked/2').val() === true)"
+      },
+      "targets": {
+        ".validate": "newData.hasChildren(['0','1','2'])"
+      },
+      "markers": {
+        ".validate": "newData.hasChildren(['target','outer','middle','inner'])"
+      }
+    }
+  }
+}
