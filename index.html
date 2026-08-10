@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Das Schichttor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-mode="player">
+<main class="shell">
+  <h1>Das Schichttor</h1>
+  <p class="subtitle">Drei steinerne Schichten liegen ineinander. Findet ihre Ausrichtung.</p>
+  <div class="layout">
+    <section class="card">
+      
+<div class="connection"><span id="connection-dot" class="dot"></span><span id="connection-text">Verbinde …</span></div>
+<div class="svg-wrap">
+<svg viewBox="0 0 680 420" role="img" aria-label="Das Schichttor">
+  <circle id="center-glow" cx="340" cy="210" r="14" fill="#d7a84e" style="opacity:0" />
+  <g id="ring-outer">
+    <circle cx="340" cy="210" r="150" fill="none" stroke="#d9dee6" stroke-width="4" opacity="0.85"/>
+    <g opacity=".8">
+      <path d="M215 140h42M204 165h36M206 195h54M206 225h40M220 252h50M432 142h38M446 170h28M428 198h48M442 228h34M420 254h48" stroke="#8793a3" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <circle id="notch-0" cx="340" cy="60" r="9" fill="#6da7d9" stroke="#d7efff" stroke-width="1" style="opacity:0;transition:opacity .25s"/>
+  </g>
+  <g id="ring-middle">
+    <circle cx="340" cy="210" r="100" fill="none" stroke="#c7cdd5" stroke-width="3" stroke-dasharray="14 8" opacity="0.72"/>
+    <path d="M340 132c37 0 67 29 67 65 0 34-28 61-61 61-30 0-55-24-55-53 0-26 21-47 46-47 22 0 40 17 40 39 0 18-14 33-32 33" fill="none" stroke="#7d8998" stroke-width="3" stroke-linecap="round"/>
+    <circle id="notch-1" cx="340" cy="110" r="8" fill="#63b9b2" stroke="#d7fffa" stroke-width="1" style="opacity:0;transition:opacity .25s"/>
+  </g>
+  <g id="ring-inner">
+    <circle cx="340" cy="210" r="55" fill="none" stroke="#b7bdc7" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.82"/>
+    <path d="M318 168l12 19-9 12 17 12-8 15 16 22M352 166l-9 17 14 10-10 17 15 13-9 20" fill="none" stroke="#858f9d" stroke-width="3" stroke-linecap="round"/>
+    <circle id="notch-2" cx="340" cy="155" r="7" fill="#d97d75" stroke="#ffe1dd" stroke-width="1" style="opacity:0;transition:opacity .25s"/>
+  </g>
+  <g id="target-marker" style="opacity:0;transition:opacity .25s">
+    <polygon points="330,10 350,10 340,30" fill="#d7a84e"/>
+  </g>
+</svg>
+</div>
+
+<div id="row-0" class="ring-row">
+  <label for="slider-0">Schicht (außen)</label>
+  <input type="range" id="slider-0" min="0" max="359" step="1" value="0">
+  <button class="lock-btn" id="lock-0" aria-label="Äußeren Ring sperren">🔓</button>
+  <span class="status" id="status-0"></span>
+</div>
+<div id="row-1" class="ring-row">
+  <label for="slider-1">Tiefe (Mitte)</label>
+  <input type="range" id="slider-1" min="0" max="359" step="1" value="0">
+  <button class="lock-btn" id="lock-1" disabled aria-label="Mittleren Ring sperren">🔓</button>
+  <span class="status" id="status-1"></span>
+</div>
+<div id="row-2" class="ring-row">
+  <label for="slider-2">Bruchlinie (innen)</label>
+  <input type="range" id="slider-2" min="0" max="359" step="1" value="0">
+  <button class="lock-btn" id="lock-2" disabled aria-label="Inneren Ring sperren">🔓</button>
+  <span class="status" id="status-2"></span>
+</div>
+
+<div id="solved-msg" class="solved">✓ Das Schichttor öffnet sich.</div>
+
+    </section>
+  </div>
+</main>
+<script type="module" src="puzzle.js"></script>
+</body>
+</html>
